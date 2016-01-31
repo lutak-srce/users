@@ -73,7 +73,7 @@ define users::account (
     User[$username] { password => $password }
   } else {
     exec { "setpassonlogin_${username}":
-      command     => "/usr/sbin/usermod -p '' ${username} && /bin/chage -d 0 ${username}",
+      command     => "/usr/sbin/usermod -p '' ${username} && /usr/bin/chage -d 0 ${username}",
       unless      => "/bin/grep ${username} /etc/shadow | /usr/bin/cut -f 2 -d : | /bin/grep -v '!' > /dev/null",
       refreshonly => true,
       subscribe   => User[$username],
