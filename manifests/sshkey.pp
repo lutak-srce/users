@@ -5,7 +5,16 @@
 define users::sshkey (
   $ensure = present,
   $user   = '',
+  $home   = '',
 ) {
+
+  $username = $user
+  if $home == '' {
+    $home_folder = "/home/${username}"
+  } else {
+    $home_folder = $home
+  }
+
   # split single key into array
   $name_array = split($name, ' ')
   $comment    = $name_array[2]
@@ -17,7 +26,7 @@ define users::sshkey (
       type    => $name_array[0],
       key     => $name_array[1],
       user    => $user,
-      require => [ User[$user], File["/home/${user}/.ssh"], ],
+      require => [ User[$user], File["${home_folder}/.ssh"], ],
     }
   }
   else {
@@ -27,7 +36,7 @@ define users::sshkey (
       type    => regsubst($name_array[0],'^(.+),(.+)$','\2'),
       key     => $name_array[1],
       user    => $user,
-      require => [ User[$user], File["/home/${user}/.ssh"], ],
+      require => [ User[$user], File["${home_folder}/.ssh"], ],
     }
   }
 }

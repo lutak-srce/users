@@ -13,9 +13,16 @@ define users::account (
   $sshkeys    = [],
   $recurse    = false,
   $membership = inclusive,
+  $home       = '',
+  $resetpw    = true,
 ) {
 
   $username = $name
+  if $home == '' {
+    $home_folder = "/home/${username}"
+  } else {
+    $home_folder = $home
+  }
 
   # This case statement will allow disabling an account by passing
   # ensure => absent, to set the home directory ownership to root.
@@ -46,6 +53,22 @@ define users::account (
     $parsed_shell = $shell[$::osfamily]
   }
 
+  # check if password is set
+  if $password != '' {
+    $password_real = $password
+  } else {
+    $password_real = undef
+    if $resetpw {
+      exec { "setpassonlogin_${username}":
+        command     => "/usr/sbin/usermod -p '' ${username} && chage -d 0 ${username}",
+        onlyif      => "/bin/grep ${username} /etc/shadow | /usr/bin/cut -f 2 -d : | /bin/grep -q '!'",
+        refreshonly => true,
+        subscribe   => User[$username],
+        require     => User[$username],
+      }
+    }
+  }
+
   # Default user settings
   user { $username:
     ensure     => $ensure,
@@ -53,9 +76,10 @@ define users::account (
     gid        => $uid,
     groups     => $parsed_groups,
     membership => $membership,
-    comment    => "${comment} ",
-    home       => "/home/${username}",
+    comment    => "${comment}",
+    home       => $home_folder,
     shell      => $parsed_shell,
+    password   => $password_real,
     allowdupe  => false,
     managehome => true,
     require    => Group[$username],
@@ -68,20 +92,7 @@ define users::account (
     allowdupe => false,
   }
 
-  # set password, or force user on first login
-  if $password != '' {
-    User[$username] { password => $password }
-  } else {
-    exec { "setpassonlogin_${username}":
-      command     => "/usr/sbin/usermod -p '' ${username} && /usr/bin/chage -d 0 ${username}",
-      unless      => "/bin/grep ${username} /etc/shadow | /usr/bin/cut -f 2 -d : | /bin/grep -v '!' > /dev/null",
-      refreshonly => true,
-      subscribe   => User[$username],
-      require     => User[$username],
-    }
-  }
-
-  file { "/home/${username}":
+  file { $home_folder:
     ensure  => directory,
     owner   => $home_owner,
     group   => $home_group,
@@ -91,24 +102,26 @@ define users::account (
     require => User[$username],
   }
 
-  file { "/home/${username}/.bash_history":
+  file { "${home_folder}/.bash_history":
     ensure  => file,
     mode    => '0600',
     owner   => $home_owner,
     group   => $home_group,
-    require => File["/home/${username}"],
+    require => File[$home_folder],
   }
 
-  file { "/home/${username}/.ssh":
+  file { "${home_folder}/.ssh":
     ensure => directory,
     owner  => $home_owner,
     group  => $home_group,
     mode   => '0700',
+    require => File[$home_folder],
   }
 
   # add sshkeys to user account if keys are defined at hiera
   ::users::sshkey { $sshkeys :
     user => $username,
+    home => $home_folder,
   }
 
 }
