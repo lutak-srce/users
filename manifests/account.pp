@@ -76,7 +76,7 @@ define users::account (
     gid        => $uid,
     groups     => $parsed_groups,
     membership => $membership,
-    comment    => "${comment}",
+    comment    => $comment,
     home       => $home_folder,
     shell      => $parsed_shell,
     password   => $password_real,
@@ -111,10 +111,10 @@ define users::account (
   }
 
   file { "${home_folder}/.ssh":
-    ensure => directory,
-    owner  => $home_owner,
-    group  => $home_group,
-    mode   => '0700',
+    ensure  => directory,
+    owner   => $home_owner,
+    group   => $home_group,
+    mode    => '0700',
     require => File[$home_folder],
   }
 
