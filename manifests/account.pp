@@ -60,7 +60,7 @@ define users::account (
     $password_real = undef
     if $resetpw {
       exec { "setpassonlogin_${username}":
-        command     => "/usr/sbin/usermod -p '' ${username} && chage -d 0 ${username}",
+        command     => "/usr/sbin/usermod -p '' ${username} && /usr/bin/chage -d 0 ${username}",
         onlyif      => "/bin/grep ${username} /etc/shadow | /usr/bin/cut -f 2 -d : | /bin/grep -q '!'",
         refreshonly => true,
         subscribe   => User[$username],
