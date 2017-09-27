@@ -4,17 +4,18 @@
 # This define adds user account to local system
 #
 define users::account (
-  $ensure     = present,
-  $comment    = '',
-  $uid        = '',
-  $groups     = '',
-  $shell      = '/bin/bash',
-  $password   = '',
-  $sshkeys    = [],
-  $recurse    = false,
-  $membership = inclusive,
-  $home       = '',
-  $resetpw    = true,
+  $ensure         = present,
+  $comment        = '',
+  $uid            = '',
+  $groups         = '',
+  $shell          = '/bin/bash',
+  $password       = '',
+  $sshkeys        = [],
+  $recurse        = false,
+  $membership     = inclusive,
+  $home           = '',
+  $resetpw        = true,
+  $purge_ssh_keys = false,
 ) {
 
   $username = $name
@@ -71,18 +72,19 @@ define users::account (
 
   # Default user settings
   user { $username:
-    ensure     => $ensure,
-    uid        => $uid,
-    gid        => $uid,
-    groups     => $parsed_groups,
-    membership => $membership,
-    comment    => $comment,
-    home       => $home_folder,
-    shell      => $parsed_shell,
-    password   => $password_real,
-    allowdupe  => false,
-    managehome => true,
-    require    => Group[$username],
+    ensure         => $ensure,
+    uid            => $uid,
+    gid            => $uid,
+    groups         => $parsed_groups,
+    membership     => $membership,
+    comment        => $comment,
+    home           => $home_folder,
+    shell          => $parsed_shell,
+    password       => $password_real,
+    allowdupe      => false,
+    managehome     => true,
+    purge_ssh_keys => $purge_ssh_keys,
+    require        => Group[$username],
   }
 
   # Default group settings
