@@ -14,6 +14,7 @@ define users::account (
   $recurse        = false,
   $membership     = inclusive,
   $home           = '',
+  $delete_home    = false,
   $resetpw        = true,
   $purge_ssh_keys = false,
 ) {
@@ -70,6 +71,18 @@ define users::account (
     }
   }
 
+  if ( ensure == 'absent' ) {
+    User[$username] -> Group[$username]
+    if ( $delete_home ) {
+      $directory_ensure = 'absent'
+    } else {
+      $directory_ensure = undef
+    }
+  } else {
+    Group[$username] -> User[$username]
+    $directory_ensure = 'directory'
+  }
+
   # Default user settings
   user { $username:
     ensure         => $ensure,
@@ -84,7 +97,6 @@ define users::account (
     allowdupe      => false,
     managehome     => true,
     purge_ssh_keys => $purge_ssh_keys,
-    require        => Group[$username],
   }
 
   # Default group settings
@@ -95,7 +107,7 @@ define users::account (
   }
 
   file { $home_folder:
-    ensure  => directory,
+    ensure  => $directory_ensure,
     owner   => $home_owner,
     group   => $home_group,
     recurse => $recurse,
@@ -113,7 +125,7 @@ define users::account (
   }
 
   file { "${home_folder}/.ssh":
-    ensure  => directory,
+    ensure  => $directory_ensure,
     owner   => $home_owner,
     group   => $home_group,
     mode    => '0700',
