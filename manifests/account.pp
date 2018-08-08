@@ -14,8 +14,8 @@ define users::account (
   $recurse        = false,
   $membership     = inclusive,
   $home           = '',
-  $delete_home    = false,
   $resetpw        = true,
+  $purge_home     = false,
   $purge_ssh_keys = false,
 ) {
 
@@ -24,19 +24,6 @@ define users::account (
     $home_folder = "/home/${username}"
   } else {
     $home_folder = $home
-  }
-
-  # This case statement will allow disabling an account by passing
-  # ensure => absent, to set the home directory ownership to root.
-  case $ensure {
-    present: {
-      $home_owner = $username
-      $home_group = $username
-    }
-    default: {
-      $home_owner = 'root'
-      $home_group = 'root'
-    }
   }
 
   # parse groups, in case we use multiple OS-es
@@ -71,16 +58,21 @@ define users::account (
     }
   }
 
+  # If ensure is set to absent, move home dir ownership to root
   if ( ensure == 'absent' ) {
     User[$username] -> Group[$username]
-    if ( $delete_home ) {
-      $directory_ensure = 'absent'
+    $home_owner = 'root'
+    $home_group = 'root'
+    if ( $purge_home ) {
+      $home_ensure = 'absent'
     } else {
-      $directory_ensure = undef
+      $home_ensure = undef
     }
   } else {
     Group[$username] -> User[$username]
-    $directory_ensure = 'directory'
+    $home_owner  = $username
+    $home_group  = $username
+    $home_ensure = 'directory'
   }
 
   # Default user settings
@@ -107,7 +99,7 @@ define users::account (
   }
 
   file { $home_folder:
-    ensure  => $directory_ensure,
+    ensure  => $home_ensure,
     owner   => $home_owner,
     group   => $home_group,
     recurse => $recurse,
@@ -125,7 +117,7 @@ define users::account (
   }
 
   file { "${home_folder}/.ssh":
-    ensure  => $directory_ensure,
+    ensure  => $home_ensure,
     owner   => $home_owner,
     group   => $home_group,
     mode    => '0700',
