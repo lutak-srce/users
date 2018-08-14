@@ -59,7 +59,7 @@ define users::account (
   }
 
   # If ensure is set to absent, move home dir ownership to root
-  if ( ensure == 'absent' ) {
+  if ( $ensure == 'absent' ) {
     User[$username] -> Group[$username]
     $home_owner = 'root'
     $home_group = 'root'
@@ -109,7 +109,7 @@ define users::account (
   }
 
   file { "${home_folder}/.bash_history":
-    ensure  => file,
+    ensure  => $ensure,
     mode    => '0600',
     owner   => $home_owner,
     group   => $home_group,
