@@ -7,7 +7,7 @@ define users::account (
   $ensure         = present,
   $comment        = '',
   $uid            = '',
-  $groups         = '',
+  $groups         = [],
   $shell          = '/bin/bash',
   $password       = '',
   $sshkeys        = [],
@@ -64,15 +64,18 @@ define users::account (
     $home_owner = 'root'
     $home_group = 'root'
     if ( $purge_home ) {
-      $home_ensure = 'absent'
+      $home_ensure = absent
+      $home_manage = true
     } else {
       $home_ensure = undef
+      $home_manage = false
     }
   } else {
     Group[$username] -> User[$username]
     $home_owner  = $username
     $home_group  = $username
     $home_ensure = 'directory'
+    $home_manage = true
   }
 
   # Default user settings
@@ -87,7 +90,7 @@ define users::account (
     shell          => $parsed_shell,
     password       => $password_real,
     allowdupe      => false,
-    managehome     => true,
+    managehome     => $home_manage,
     purge_ssh_keys => $purge_ssh_keys,
   }
 
@@ -125,9 +128,11 @@ define users::account (
   }
 
   # add sshkeys to user account if keys are defined at hiera
-  ::users::sshkey { $sshkeys :
-    user => $username,
-    home => $home_folder,
+  if ( $ensure == 'present' ) {
+    ::users::sshkey { $sshkeys :
+      user => $username,
+      home => $home_folder,
+    }
   }
 
 }
