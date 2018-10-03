@@ -16,28 +16,33 @@ define users::sshkey (
   }
 
   # split single key into array
-  $name_array = split($name, ' ')
-  $comment    = $name_array[2]
+  $key_array = split($name, ' ')
 
-  $keyoptions = regsubst($name_array[0],'^(.+),(.+)$','\1')
-  if $keyoptions != '' {
-    ssh_authorized_key { $comment :
+  if $key_array[0] in [ 'ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'ssh-ed25519' ] {
+
+    ssh_authorized_key { $key_array[2] :
       ensure  => $ensure,
-      type    => $name_array[0],
-      key     => $name_array[1],
+      type    => $key_array[0],
+      key     => $key_array[1],
       user    => $user,
       require => [ User[$user], File["${home_folder}/.ssh"], ],
     }
-  }
-  else {
-    ssh_authorized_key { $comment :
+
+  } elsif $key_array[1] in [ 'ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'ssh-ed25519' ] {
+
+    ssh_authorized_key { $key_array[3] :
       ensure  => $ensure,
-      options => $keyoptions,
-      type    => regsubst($name_array[0],'^(.+),(.+)$','\2'),
-      key     => $name_array[1],
+      options => $key_array[0],
+      type    => $key_array[1],
+      key     => $key_array[2],
       user    => $user,
       require => [ User[$user], File["${home_folder}/.ssh"], ],
     }
+
+  } else {
+
+    fail("SSH key ${name} is not properly formatted. Valid SSH key types are ssh-dss, ssh-rsa, ecdsa-sha2-nistp256, ecdsa-sha2-nistp384, ecdsa-sha2-nistp521 and ssh-ed25519.")
+
   }
 }
 # vi:syntax=puppet:filetype=puppet:ts=4:et:
