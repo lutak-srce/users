@@ -6,11 +6,11 @@
 class users {
 
   # generate virtual user accounts from hiera
-  $users_virtual = hiera_hash('useraccounts', {})
+  $users_virtual = lookup('useraccounts', Hash, {'strategy' =>  'deep', 'merge_hash_arrays' =>  true})
   create_resources('@::Users::Account', $users_virtual)
 
   # realize only specific users
-  $users_realize = hiera_array('users',[])
+  $users_realize = lookup('users', {'merge' => 'unique'})
   realize (::Users::Account[$users_realize])
 
 }
