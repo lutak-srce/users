@@ -20,7 +20,7 @@ define users::sshkey (
 
   if $key_array[0] in [ 'ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'ssh-ed25519' ] {
 
-    ssh_authorized_key { $key_array[2] :
+    ssh_authorized_key { "${home}-${key_array[2]}" :
       ensure  => $ensure,
       type    => $key_array[0],
       key     => $key_array[1],
@@ -30,7 +30,7 @@ define users::sshkey (
 
   } elsif $key_array[1] in [ 'ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'ssh-ed25519' ] {
 
-    ssh_authorized_key { $key_array[3] :
+    ssh_authorized_key { "${home}-${key_array[3]}" :
       ensure  => $ensure,
       options => $key_array[0],
       type    => $key_array[1],
