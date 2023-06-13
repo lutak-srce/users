@@ -15,7 +15,7 @@ define users::adaccount (
     mode   => '0700',
   }
 
-  if has_key($useraccounts, $ad_user) {
+  if ($ad_user in $useraccounts) {
     ::users::adaccount::sshkey { $useraccounts[$ad_user]['sshkeys'] :
       user => $ad_user,
       home => $ad_home,
