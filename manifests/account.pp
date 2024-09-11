@@ -27,18 +27,18 @@ define users::account (
   }
 
   # parse groups, in case we use multiple OS-es
-  if is_array( $groups ) {
+  if ( $groups.type == Array ) {
     $parsed_groups = drop_offending_strings($groups,'^!',true)
-  } elsif is_hash ( $groups ) {
+  } elsif ( $groups.type == Hash ) {
     $parsed_groups = drop_offending_strings($groups[$::osfamily],'^!',true)
   } else {
     $parsed_groups = undef
   }
 
   # parse shells, in case we use multiple OS-es
-  if is_string( $shell ) {
+  if ( $shell.type == String ) {
     $parsed_shell = $shell
-  } elsif is_hash ( $shell ) {
+  } elsif ( $shell.type == Hash ) {
     $parsed_shell = $shell[$::osfamily]
   }
 
