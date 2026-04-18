@@ -30,7 +30,7 @@ define users::account (
   if users_is_array( $groups ) {
     $parsed_groups = drop_offending_strings($groups,'^!',true)
   } elsif users_is_hash ( $groups ) {
-    $parsed_groups = drop_offending_strings($groups[$::osfamily],'^!',true)
+    $parsed_groups = drop_offending_strings($groups[$facts['os']['family']],'^!',true)
   } else {
     $parsed_groups = undef
   }
@@ -39,7 +39,7 @@ define users::account (
   if users_is_string( $shell ) {
     $parsed_shell = $shell
   } elsif users_is_hash ( $shell ) {
-    $parsed_shell = $shell[$::osfamily]
+    $parsed_shell = $shell[$facts['os']['family']]
   }
 
   # check if password is set
